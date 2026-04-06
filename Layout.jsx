@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { key: "customers", icon: Users, page: "Customers" },
   { key: "transporters", icon: Truck, page: "Transporters" },
   { key: "plantAnalytics", icon: Factory, page: "PlantAnalytics" },
-  { key: "performance", icon: BarChart3, page: "Performance" },
+  { key: "performance", icon: BarChart3, page: "Performance with edits" },
 ];
 
 function LayoutContent({ children, currentPageName }) {
