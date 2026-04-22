@@ -9,14 +9,14 @@ Follow these rules when reading or modifying code.
 - **components/** — Reusable UI pieces (aim for <50 lines). Accept callbacks as props.
 - **entities/** — JSON Schema files defining data models. The platform auto-generates CRUD APIs.
 - **Layout.jsx** — Wraps all pages. Receives `children` and `currentPageName` props.
-
+- **context/** — React context providers. Must be mounted inside Layout.jsx to work.
 - **utils/** — Helper functions (optional).
 
 ## Current App Structure
 
-- **Entities:** none yet
-- **Pages:** Home
-- **Components:** Contacto, Hero, Portafolio, Servicios, Testimonios
+- **Entities:** Customer, Division, Plant, Shipment, Transporter
+- **Pages:** Home, Customers, Dashboard, Performance, PlantAnalytics, Shipments, Transporters
+- **Components:** Contacto, Hero, Portafolio, Servicios, Testimonios, DataTable, FilterBar, KpiCard, MiniChart, Pep, ScoreBar, test
 
 ## Entity SDK
 
@@ -134,7 +134,7 @@ export default function Tasks() {
    // In entity schema: "history_json": { "type": "string", "default": "[]" }
    const history = JSON.parse(item.history_json || "[]");
    ```
-
+10. **Context providers must be inside Layout.jsx.** Don't mount them elsewhere.
 
 ## Entity Schema Format
 

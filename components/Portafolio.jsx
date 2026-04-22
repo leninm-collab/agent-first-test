@@ -1,11 +1,13 @@
-import { useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
+import { ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 
 const categories = ["Todos", "Logotipos", "Branding", "Redes Sociales", "Impreso"];
 
 const projects = [
   {
-    title: "Logo Restaurante Bella Vista",
+    title: "Logo Restaurante Bella Vista Lenin",
     category: "Logotipos",
     gradient: "linear-gradient(135deg, #d4a843, #8B4513)",
     initials: "BV",
@@ -75,6 +77,44 @@ export default function Portafolio() {
   const filtered =
     active === "Todos" ? projects : projects.filter((p) => p.category === active);
 
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: "start" },
+    [Autoplay({ delay: 3500, stopOnMouseEnter: true })]
+  );
+
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [snapCount, setSnapCount] = useState(0);
+
+  const updateState = useCallback(() => {
+    if (!emblaApi) return;
+    setCanPrev(emblaApi.canGoToPrev());
+    setCanNext(emblaApi.canGoToNext());
+    setSelectedIndex(emblaApi.selectedSnap());
+    setSnapCount(emblaApi.snapList().length);
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    emblaApi.on("select", updateState);
+    emblaApi.on("init", updateState);
+    emblaApi.on("reInit", updateState);
+    updateState();
+    return () => {
+      emblaApi.off("select", updateState);
+      emblaApi.off("init", updateState);
+      emblaApi.off("reInit", updateState);
+    };
+  }, [emblaApi, updateState]);
+
+  useEffect(() => {
+    if (emblaApi) {
+      emblaApi.reInit();
+      setSelectedIndex(0);
+    }
+  }, [active, emblaApi]);
+
   return (
     <section id="portafolio" className="py-24 bg-[#111]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -117,40 +157,84 @@ export default function Portafolio() {
           ))}
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((p) => (
-            <div
-              key={p.title}
-              className="group relative overflow-hidden rounded-2xl cursor-pointer"
-              style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
-            >
-              {/* Visual */}
-              <div
-                className="h-48 flex items-center justify-center relative overflow-hidden"
-                style={{ background: p.gradient }}
-              >
-                <span className="text-white font-black text-5xl opacity-80 group-hover:scale-110 transition-transform duration-300">
-                  {p.initials}
-                </span>
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                  <ExternalLink
-                    size={28}
-                    className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  />
+        {/* Carousel */}
+        <div className="relative">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex">
+              {filtered.map((p) => (
+                <div
+                  key={p.title}
+                  className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 pl-4"
+                >
+                  <div
+                    className="group relative overflow-hidden rounded-2xl cursor-pointer h-full"
+                    style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+                  >
+                    {/* Visual */}
+                    <div
+                      className="h-48 flex items-center justify-center relative overflow-hidden"
+                      style={{ background: p.gradient }}
+                    >
+                      <span className="text-white font-black text-5xl opacity-80 group-hover:scale-110 transition-transform duration-300">
+                        {p.initials}
+                      </span>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                        <ExternalLink
+                          size={28}
+                          className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        />
+                      </div>
+                    </div>
+                    {/* Info */}
+                    <div className="p-4">
+                      <span className="text-[#d4a843] text-xs font-bold uppercase tracking-wider">
+                        {p.category}
+                      </span>
+                      <h3 className="text-white font-bold mt-1 mb-1">{p.title}</h3>
+                      <p className="text-[#888] text-sm">{p.desc}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              {/* Info */}
-              <div className="p-4">
-                <span className="text-[#d4a843] text-xs font-bold uppercase tracking-wider">
-                  {p.category}
-                </span>
-                <h3 className="text-white font-bold mt-1 mb-1">{p.title}</h3>
-                <p className="text-[#888] text-sm">{p.desc}</p>
-              </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Prev / Next buttons */}
+          <button
+            onClick={() => emblaApi?.goToPrev()}
+            disabled={!canPrev}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] text-[#d4a843] flex items-center justify-center transition-all hover:bg-[#d4a843] hover:text-[#0d0d0d] disabled:opacity-30 disabled:cursor-not-allowed z-10"
+            aria-label="Anterior"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            onClick={() => emblaApi?.goToNext()}
+            disabled={!canNext}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] text-[#d4a843] flex items-center justify-center transition-all hover:bg-[#d4a843] hover:text-[#0d0d0d] disabled:opacity-30 disabled:cursor-not-allowed z-10"
+            aria-label="Siguiente"
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
+
+        {/* Dot indicators */}
+        {snapCount > 1 && (
+          <div className="flex justify-center gap-2 mt-6">
+            {Array.from({ length: snapCount }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => emblaApi?.goTo(i)}
+                aria-label={`Ir a slide ${i + 1}`}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  i === selectedIndex
+                    ? "bg-[#d4a843] w-5"
+                    : "bg-[#333] hover:bg-[#666]"
+                }`}
+              />
+            ))}
+          </div>
+        )}
 
         {/* CTA */}
         <div className="text-center mt-12">

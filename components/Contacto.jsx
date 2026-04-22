@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Mail, MessageCircle, Clock, CheckCircle } from "lucide-react";
 
 const serviceOptions = [
@@ -11,19 +12,23 @@ const serviceOptions = [
   "Otro",
 ];
 
+const inputClass = (error) =>
+  `w-full bg-[#242424] border ${
+    error ? "border-red-500 focus:border-red-400" : "border-[#333] focus:border-[#d4a843]"
+  } rounded-xl px-4 py-3 text-white placeholder-[#555] focus:outline-none transition-colors text-sm`;
+
 export default function Contacto() {
-  const [form, setForm] = useState({ name: "", email: "", service: "", message: "" });
   const [sent, setSent] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Simulate sending
+  const onSubmit = () => {
     setSent(true);
-    setForm({ name: "", email: "", service: "", message: "" });
+    reset();
   };
 
   return (
@@ -70,45 +75,53 @@ export default function Contacto() {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
                 <div>
                   <label className="text-[#ccc] text-sm font-medium block mb-2">
                     Nombre completo *
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    required
                     placeholder="Tu nombre"
-                    className="w-full bg-[#242424] border border-[#333] rounded-xl px-4 py-3 text-white placeholder-[#555] focus:outline-none focus:border-[#d4a843] transition-colors text-sm"
+                    className={inputClass(errors.name)}
+                    {...register("name", {
+                      required: "El nombre es obligatorio",
+                      minLength: { value: 2, message: "Mínimo 2 caracteres" },
+                    })}
                   />
+                  {errors.name && (
+                    <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>
+                  )}
                 </div>
+
                 <div>
                   <label className="text-[#ccc] text-sm font-medium block mb-2">
                     Correo electrónico *
                   </label>
                   <input
                     type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    required
                     placeholder="tu@email.com"
-                    className="w-full bg-[#242424] border border-[#333] rounded-xl px-4 py-3 text-white placeholder-[#555] focus:outline-none focus:border-[#d4a843] transition-colors text-sm"
+                    className={inputClass(errors.email)}
+                    {...register("email", {
+                      required: "El correo es obligatorio",
+                      pattern: {
+                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                        message: "Ingresa un correo válido",
+                      },
+                    })}
                   />
+                  {errors.email && (
+                    <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>
+                  )}
                 </div>
+
                 <div>
                   <label className="text-[#ccc] text-sm font-medium block mb-2">
                     Servicio de interés *
                   </label>
                   <select
-                    name="service"
-                    value={form.service}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-[#242424] border border-[#333] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#d4a843] transition-colors text-sm"
+                    className={inputClass(errors.service)}
+                    {...register("service", { required: "Selecciona un servicio" })}
                   >
                     <option value="">Selecciona un servicio</option>
                     {serviceOptions.map((s) => (
@@ -117,21 +130,29 @@ export default function Contacto() {
                       </option>
                     ))}
                   </select>
+                  {errors.service && (
+                    <p className="text-red-400 text-xs mt-1">{errors.service.message}</p>
+                  )}
                 </div>
+
                 <div>
                   <label className="text-[#ccc] text-sm font-medium block mb-2">
                     Cuéntanos tu proyecto *
                   </label>
                   <textarea
-                    name="message"
-                    value={form.message}
-                    onChange={handleChange}
-                    required
                     rows={4}
                     placeholder="Describe brevemente lo que necesitas..."
-                    className="w-full bg-[#242424] border border-[#333] rounded-xl px-4 py-3 text-white placeholder-[#555] focus:outline-none focus:border-[#d4a843] transition-colors text-sm resize-none"
+                    className={`${inputClass(errors.message)} resize-none`}
+                    {...register("message", {
+                      required: "Describe tu proyecto",
+                      minLength: { value: 10, message: "Mínimo 10 caracteres" },
+                    })}
                   />
+                  {errors.message && (
+                    <p className="text-red-400 text-xs mt-1">{errors.message.message}</p>
+                  )}
                 </div>
+
                 <button type="submit" className="btn-gold w-full text-center text-base">
                   Enviar Solicitud
                 </button>
